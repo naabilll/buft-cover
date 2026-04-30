@@ -19,7 +19,7 @@
 
         .main-wrapper {
             width: 100%;
-            max-width: 500px; /* Kept narrow to feel like a mobile app */
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -61,7 +61,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             box-sizing: border-box;
-            display: none; /* Hidden by default for switching views */
+            display: none; 
             text-align: center;
         }
         .panel.active {
@@ -96,21 +96,28 @@
 
         /* --- HOME SCREEN --- */
         .calc-icon {
-            font-size: 60px;
+            font-size: 45px; 
             margin-bottom: 20px;
-            background: #d9534f;
+            background: #002060; /* Changed from red to Navy Blue */
             color: white;
             width: 120px;
             height: 120px;
-            line-height: 120px;
             border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 5px 15px rgba(217, 83, 79, 0.4);
+            
+            /* Center multi-line text */
+            display: inline-flex; 
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.1; 
+            
+            box-shadow: 0 5px 15px rgba(0, 32, 96, 0.4);
         }
+        
         .home-btn {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             width: 100%;
             background: #fdfdfd;
             color: #333;
@@ -130,12 +137,15 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .home-btn-icon {
-            background: #b33939;
+            background: #002060; /* Changed from red to Navy Blue */
             color: white;
             padding: 10px;
             border-radius: 6px;
             margin-right: 15px;
             font-size: 18px;
+            text-align: center;
+            line-height: 1.2;
+            min-width: 40px; 
         }
 
         /* --- PROMPT SCREEN --- */
@@ -156,7 +166,7 @@
         .floating-input input {
             width: 100%;
             padding: 15px;
-            border: 1px solid #b33939;
+            border: 1px solid #002060; /* Changed from red to Navy Blue */
             border-radius: 4px;
             font-size: 18px;
             box-sizing: border-box;
@@ -164,7 +174,7 @@
         }
 
         .btn-next, .btn-calc {
-            background-color: #801a36; /* Deep maroon/purple from your screenshot */
+            background-color: #002060; /* Changed from maroon to Navy Blue */
             color: white;
             border: none;
             padding: 15px 30px;
@@ -173,9 +183,9 @@
             font-weight: bold;
             font-size: 16px;
             transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(128, 26, 54, 0.3);
+            box-shadow: 0 4px 10px rgba(0, 32, 96, 0.3);
         }
-        .btn-next:hover, .btn-calc:hover { background-color: #5c1125; }
+        .btn-next:hover, .btn-calc:hover { background-color: #00133d; }
         .btn-calc { width: 100%; border-radius: 8px; margin-top: 20px; }
 
         /* --- INPUT ROWS SCREEN --- */
@@ -188,7 +198,11 @@
             font-size: 14px;
             text-decoration: underline;
         }
-        .headers-row div { flex: 1; }
+        .headers-row div { 
+            flex: 1; 
+            min-width: 0;
+            text-align: center; 
+        }
 
         .input-row {
             display: flex;
@@ -203,6 +217,7 @@
             font-size: 14px;
             box-sizing: border-box;
             outline: none;
+            min-width: 0; 
         }
         .input-row input:focus {
             border-color: #002060;
@@ -222,7 +237,7 @@
         .result-cgpa {
             font-size: 40px;
             font-weight: bold;
-            color: #4da6ff; /* Light blue from your screenshot */
+            color: #4da6ff; 
             margin: 0;
         }
     </style>
@@ -240,6 +255,7 @@
 
         <!-- 1. HOME SCREEN -->
         <div id="view-home" class="panel active">
+            <!-- Icon is fixed here via CSS flexbox -->
             <div class="calc-icon">✖ ÷<br>+ −</div>
             
             <button class="home-btn" onclick="openPrompt('1sem')">
@@ -302,16 +318,13 @@
     </div>
 
     <script>
-        let currentMode = ''; // Will be '1sem' or 'allsem'
+        let currentMode = ''; 
 
         /* --- NAVIGATION --- */
         function switchView(viewId) {
-            // Hide all panels
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            // Show target panel
             document.getElementById(viewId).classList.add('active');
             
-            // Hide result if going back
             if(viewId !== 'view-inputs') {
                 document.getElementById('result-display').style.display = 'none';
             }
@@ -320,7 +333,7 @@
         /* --- STEP 1: OPEN PROMPT --- */
         function openPrompt(mode) {
             currentMode = mode;
-            document.getElementById('input-count').value = ''; // Clear old input
+            document.getElementById('input-count').value = ''; 
             
             if (mode === '1sem') {
                 document.getElementById('prompt-label').innerText = 'Total subjects(in semester)';
@@ -340,7 +353,6 @@
                 return;
             }
 
-            // Set Headers based on mode
             if (currentMode === '1sem') {
                 document.getElementById('header-left').innerText = 'Subject Credit';
             } else {
@@ -348,9 +360,8 @@
             }
 
             const container = document.getElementById('rows-container');
-            container.innerHTML = ''; // Clear old rows
+            container.innerHTML = ''; 
 
-            // Generate exact number of boxes requested
             for (let i = 0; i < count; i++) {
                 const placeholderLeft = currentMode === '1sem' ? 'Enter subject credit' : 'Enter semester credit';
                 
@@ -363,10 +374,7 @@
                 container.appendChild(row);
             }
 
-            // Hide previous results
             document.getElementById('result-display').style.display = 'none';
-            
-            // Go to inputs view
             switchView('view-inputs');
         }
 
@@ -381,7 +389,6 @@
                 const creditStr = row.querySelector('.val-credit').value;
                 const resultStr = row.querySelector('.val-result').value;
 
-                // Only calculate if BOTH boxes in a row are filled
                 if (creditStr !== "" && resultStr !== "") {
                     const credit = parseFloat(creditStr);
                     const result = parseFloat(resultStr);
@@ -397,14 +404,10 @@
                 return;
             }
 
-            // Calculate the weighted average
             const finalCGPA = totalPoints / totalCredits;
             
-            // Display Result
             document.getElementById('final-cgpa').innerText = finalCGPA.toFixed(2);
             document.getElementById('result-display').style.display = 'block';
-
-            // Change button text to match screenshot ("Calculate Again")
             document.querySelector('.btn-calc').innerText = "Calculate Again";
         }
     </script>
