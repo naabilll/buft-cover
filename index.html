@@ -6,7 +6,7 @@
     <title>BUFT Cover Page Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* General Setup & Sidebar */
+        /* General Setup */
         body {
             font-family: Arial, sans-serif;
             background-color: #2c3e50; 
@@ -18,7 +18,159 @@
             height: 100vh;
             overflow: hidden;
             box-sizing: border-box;
+            position: relative;
         }
+
+        /* --- STYLISED FLOATING MENU BUTTON --- */
+        .menu-btn {
+            position: fixed; /* FIXED: Keeps button on screen during scroll */
+            top: 20px;
+            left: 20px;
+            font-size: 22px;
+            cursor: pointer;
+            background: #ffffff;
+            border: 2px solid #002060;
+            color: #002060;
+            z-index: 1000; /* Stays above everything */
+            padding: 8px 14px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            background: #002060;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        /* --- SIDE MENU STYLES --- */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -320px; /* Hidden by default */
+            width: 320px; 
+            height: 100%;
+            background-color: #ffffff;
+            box-shadow: 2px 0 25px rgba(0,0,0,0.6);
+            transition: left 0.3s ease;
+            z-index: 999;
+            padding: 80px 20px 20px 20px; /* Space for the button */
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0; 
+        }
+
+        /* Description Header in Menu */
+        .menu-header-text {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .menu-header-text h3 {
+            margin: 0 0 8px 0;
+            color: #002060;
+            font-size: 18px;
+        }
+        .menu-header-text p {
+            margin: 0;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* Menu Items */
+        .menu-item {
+            display: block;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+            color: #002060;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .menu-item:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Highlighted Bus Ad in Menu */
+        .bus-ad {
+            background: linear-gradient(135deg, #002060, #1a4b8c);
+            color: white !important;
+            border: none;
+            padding: 16px 15px;
+            box-shadow: 0 4px 10px rgba(0, 32, 96, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        .bus-ad:hover {
+            background: linear-gradient(135deg, #1a4b8c, #002060);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 32, 96, 0.4);
+        }
+        .bus-ad .ad-badge {
+            background: #ffcc00;
+            color: #000;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .bus-ad .ad-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .bus-ad .ad-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: normal;
+        }
+
+        /* Counter Box */
+        .counter-box {
+            margin-top: auto; 
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            border: 1px dashed #ccc;
+        }
+        .counter-box img {
+            margin-top: 8px;
+            border-radius: 4px;
+        }
+
+        .menu-credit {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            font-weight: bold;
+            padding-top: 15px;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        /* --- END MENU STYLES --- */
 
         /* Form Container (Left Side) */
         .form-container {
@@ -32,6 +184,7 @@
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
+            position: relative;
         }
         
         /* APP HEADER */
@@ -81,7 +234,7 @@
             color: white;
         }
 
-        /* Download Button & Credit */
+        /* Download Button */
         .download-btn {
             width: 100%;
             padding: 15px;
@@ -96,34 +249,6 @@
             transition: 0.3s;
         }
         .download-btn:hover { background-color: #001540; }
-        
-        .credit {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 13px;
-            color: #666;
-            font-weight: bold;
-        }
-
-        /* Bus Tracker Link */
-        .bus-link-btn {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            padding: 10px;
-            background-color: #f0f4f8;
-            color: #002060;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            border: 1px solid #cce0ff;
-            border-radius: 4px;
-            transition: 0.2s;
-        }
-        .bus-link-btn:hover {
-            background-color: #cce0ff;
-            color: #001540;
-        }
 
         /* A4 Page Container (Right Side) */
         .page-wrapper {
@@ -336,7 +461,7 @@
         .hidden { display: none !important; }
 
         /* ========================================= */
-        /*        MOBILE RESPONSIVE UI FIX           */
+        /* MOBILE RESPONSIVE UI FIX           */
         /* ========================================= */
         @media screen and (max-width: 900px) {
             body {
@@ -346,6 +471,7 @@
                 align-items: center;    
                 gap: 20px;
                 padding: 15px;
+                padding-top: 70px; /* Added padding to clear space for the new floating menu button */
             }
 
             .form-container {
@@ -376,28 +502,54 @@
 </head>
 <body>
 
-    <!-- Main View: Input Form -->
+    <button class="menu-btn" onclick="toggleMenu()" title="Open Menu">☰</button>
+
+    <div class="side-menu" id="sideMenu">
+        
+        <div class="menu-header-text">
+            <h3>BUFT Tools</h3>
+            <p>Instantly generate standard cover pages and index pages for your lab reports and assignments. Save time and format perfectly.</p>
+        </div>
+        <hr style="margin-bottom: 20px; border-top: 1px solid #eee;">
+
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSf0aEZJ038DlgvbKvUVDPEGR95RRPSoZfAiMgXiGYpUWFARlA/viewform?usp=publish-editor" target="_blank" class="menu-item">
+            📝 Submit Feedback
+        </a>
+
+        <a href="https://naabilll.github.io/buft-bus-tracker" target="_blank" class="menu-item bus-ad">
+            <span class="ad-badge">Recommended Utilities</span>
+            <span class="ad-title">🚌 BUFT Bus Tracker</span>
+            <span class="ad-subtitle">Track university buses in real-time!</span>
+        </a>
+
+        <div class="counter-box">
+            <strong>Total Visitors</strong><br>
+            <img src="https://visitor-badge.laobi.icu/badge?page_id=nabil.buft.cover.generator&left_color=555555&right_color=002060&left_text=Visitors" alt="Visitor Count">
+        </div>
+
+        <div class="menu-credit">
+            Designed by<br>
+            Shazzad Hossain Nabil (TE 221)
+        </div>
+    </div>
+
     <div class="form-container">
         
-        <!-- APP HEADER WITH LIVE WEB LOGO -->
         <div class="app-header">
             <img src="https://buft.edu.bd/themes/buft/images/buft_new_logo.png" alt="BUFT Web Logo">
             <h2>BGMEA University of Fashion & Technology<br>Cover Page Generator</h2>
         </div>
 
-        <!-- MODE SWITCHER -->
         <div class="mode-toggle">
             <button id="btn-lab" class="mode-btn active" onclick="setMode('lab')">Lab Report</button>
             <button id="btn-assignment" class="mode-btn" onclick="setMode('assignment')">Assignment</button>
             <button id="btn-index" class="mode-btn" onclick="setMode('index')">Index</button>
         </div>
         
-        <!-- INDEX ONLY SECTION -->
         <div class="index-fields hidden">
             <h3>Index Entries</h3>
             <div id="index-rows-list-container" class="form-list-container">
-                <!-- Dynamic rows -->
-            </div>
+                </div>
             
             <div class="row-input-section">
                 <h4>Add / Edit Row</h4>
@@ -409,7 +561,6 @@
             </div>
         </div>
 
-        <!-- COVER PAGE COMMON FIELDS -->
         <div class="cover-common-fields">
             <div class="form-group">
                 <label>Course Code:</label>
@@ -420,7 +571,6 @@
                 <input type="text" id="in-course-title" placeholder="e.g. Yarn Manufacturing-II" oninput="updatePreview()">
             </div>
 
-            <!-- LAB ONLY FIELDS -->
             <div class="lab-fields">
                 <div class="form-group">
                     <label>Experiment No:</label>
@@ -432,7 +582,6 @@
                 </div>
             </div>
 
-            <!-- ASSIGNMENT ONLY FIELDS -->
             <div class="assignment-fields hidden">
                 <div class="form-group">
                     <label>Assignment Topic:</label>
@@ -476,7 +625,6 @@
 
             <hr>
 
-            <!-- DATE SECTION -->
             <div class="form-group">
                 <label>Date of Submission:</label>
                 <div class="date-inputs-wrapper">
@@ -489,17 +637,8 @@
         <div style="flex-grow: 1;"></div>
 
         <button class="download-btn" onclick="generatePDF()">Download Document</button>
-        
-        <div class="credit">Designed by Shazzad Hossain Nabil (TE 221)</div>
-
-        <!-- UPDATED: More engaging Bus Tracker link text -->
-        <a href="https://naabilll.github.io/buft-bus-tracker" target="_blank" class="bus-link-btn">
-            🚌 Track BUFT Buses Live!
-        </a>
-
     </div>
 
-    <!-- Live Preview -->
     <div class="page-wrapper">
         <div id="cover-page">
             <div class="border-outer">
@@ -508,16 +647,13 @@
                     <div class="header-title">BGMEA University of Fashion & Technology</div>
                     
                     <div class="logo-container">
-                        <!-- REVERTED to logo.png for Netlify compatibility -->
                         <img src="logo.png" id="out-logo" alt="BUFT Logo">
                     </div>
 
-                    <!-- DYNAMIC TITLE BOX -->
                     <div class="report-type-outer">
                         <div class="report-type-inner" id="out-main-title">Lab Report</div>
                     </div>
 
-                    <!-- COVER ONLY CONTENT -->
                     <div class="cover-content">
                         <div class="course-info">
                             <div class="group-1">
@@ -557,7 +693,6 @@
                         </div>
                     </div>
 
-                    <!-- INDEX ONLY CONTENT -->
                     <div class="index-content hidden">
                         <table class="index-table">
                             <thead>
@@ -569,8 +704,7 @@
                                 </tr>
                             </thead>
                             <tbody id="out-index-rows-body">
-                                <!-- Dynamic rows -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
 
@@ -580,6 +714,24 @@
     </div>
 
     <script>
+        // --- MENU LOGIC ---
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            menu.classList.toggle('open');
+        }
+
+        // Close menu if user clicks outside of it
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('sideMenu');
+            const menuBtn = document.querySelector('.menu-btn');
+            
+            if (menu.classList.contains('open') && !menu.contains(event.target) && !menuBtn.contains(event.target)) {
+                menu.classList.remove('open');
+            }
+        });
+        // --- END MENU LOGIC ---
+
+
         const defaultIndexData = [
             {slNo: '01', name: 'Example Experiment Title One'},
             {slNo: '02', name: 'Example Experiment Title Two'}
