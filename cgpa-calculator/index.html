@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUFT CGPA Calculator</title>
+    <style>
+        /* General Setup */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50; 
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 500px; /* Kept narrow to feel like a mobile app */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* App Header */
+        .app-header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .app-header img {
+            width: 200px;
+            max-width: 100%;
+            margin-bottom: 10px;
+        }
+        .app-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #002060;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #1a4b8c;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Panels Container */
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+            display: none; /* Hidden by default for switching views */
+            text-align: center;
+        }
+        .panel.active {
+            display: block;
+        }
+
+        /* Form Header (Inside Panels) */
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            text-align: left;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #002060;
+            cursor: pointer;
+            margin-right: 15px;
+            padding: 0;
+            line-height: 1;
+        }
+        .panel-header h3 {
+            margin: 0;
+            color: #002060;
+            font-size: 18px;
+            flex: 1;
+        }
+
+        /* --- HOME SCREEN --- */
+        .calc-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            background: #d9534f;
+            color: white;
+            width: 120px;
+            height: 120px;
+            line-height: 120px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(217, 83, 79, 0.4);
+        }
+        .home-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: #fdfdfd;
+            color: #333;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            text-align: left;
+        }
+        .home-btn:hover {
+            border-color: #002060;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .home-btn-icon {
+            background: #b33939;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        /* --- PROMPT SCREEN --- */
+        .floating-input {
+            position: relative;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .floating-input label {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: white;
+            padding: 0 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        .floating-input input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #b33939;
+            border-radius: 4px;
+            font-size: 18px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .btn-next, .btn-calc {
+            background-color: #801a36; /* Deep maroon/purple from your screenshot */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(128, 26, 54, 0.3);
+        }
+        .btn-next:hover, .btn-calc:hover { background-color: #5c1125; }
+        .btn-calc { width: 100%; border-radius: 8px; margin-top: 20px; }
+
+        /* --- INPUT ROWS SCREEN --- */
+        .headers-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #000;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+        .headers-row div { flex: 1; }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-row input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .input-row input:focus {
+            border-color: #002060;
+        }
+
+        /* --- RESULT SCREEN --- */
+        .result-container {
+            margin-top: 30px;
+            display: none;
+        }
+        .result-container p {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 0 0 10px 0;
+            color: #000;
+        }
+        .result-cgpa {
+            font-size: 40px;
+            font-weight: bold;
+            color: #4da6ff; /* Light blue from your screenshot */
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        
+        <!-- HEADER -->
+        <div class="app-header">
+            <img src="https://buft.edu.bd/themes/buft/images/buft_new_logo.png" alt="BUFT Logo">
+            <h2>CGPA Calculator</h2>
+            <a href="/" class="back-link">← Back to Cover Page Generator</a>
+        </div>
+
+        <!-- 1. HOME SCREEN -->
+        <div id="view-home" class="panel active">
+            <div class="calc-icon">✖ ÷<br>+ −</div>
+            
+            <button class="home-btn" onclick="openPrompt('1sem')">
+                <div class="home-btn-icon">✖ ÷<br>+ =</div>
+                <div>
+                    <div>Calculate expected CGPA</div>
+                    <div style="font-size: 12px; color: #888; font-weight: normal;">For a semester</div>
+                </div>
+            </button>
+
+            <button class="home-btn" onclick="openPrompt('allsem')">
+                <div class="home-btn-icon">✖ ÷<br>+ =</div>
+                <div>
+                    <div>Calculate expected CGPA</div>
+                    <div style="font-size: 12px; color: #888; font-weight: normal;">For all semesters</div>
+                </div>
+            </button>
+        </div>
+
+        <!-- 2. PROMPT SCREEN (Ask for Number) -->
+        <div id="view-prompt" class="panel">
+            <div class="panel-header">
+                <button class="back-btn" onclick="switchView('view-home')">←</button>
+                <h3 id="prompt-title">CGPA Calculator</h3>
+            </div>
+            
+            <div class="floating-input">
+                <label id="prompt-label">Total subjects(in semester)</label>
+                <input type="number" id="input-count" placeholder="" min="1">
+            </div>
+
+            <button class="btn-next" onclick="generateRows()">Next >></button>
+        </div>
+
+        <!-- 3. INPUT ROWS & CALCULATE SCREEN -->
+        <div id="view-inputs" class="panel">
+            <div class="panel-header">
+                <button class="back-btn" onclick="switchView('view-prompt')">←</button>
+                <h3>CGPA Calculator</h3>
+            </div>
+
+            <!-- Dynamic Headers -->
+            <div class="headers-row">
+                <div id="header-left">Subject Credit</div>
+                <div>Original/Expected Result</div>
+            </div>
+
+            <!-- Dynamic Input Rows injected here -->
+            <div id="rows-container"></div>
+
+            <button class="btn-calc" onclick="calculateCGPA()">Calculate</button>
+
+            <!-- Result Display -->
+            <div class="result-container" id="result-display">
+                <p>Your expected CGPA is:</p>
+                <div class="result-cgpa" id="final-cgpa">0.00</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentMode = ''; // Will be '1sem' or 'allsem'
+
+        /* --- NAVIGATION --- */
+        function switchView(viewId) {
+            // Hide all panels
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            // Show target panel
+            document.getElementById(viewId).classList.add('active');
+            
+            // Hide result if going back
+            if(viewId !== 'view-inputs') {
+                document.getElementById('result-display').style.display = 'none';
+            }
+        }
+
+        /* --- STEP 1: OPEN PROMPT --- */
+        function openPrompt(mode) {
+            currentMode = mode;
+            document.getElementById('input-count').value = ''; // Clear old input
+            
+            if (mode === '1sem') {
+                document.getElementById('prompt-label').innerText = 'Total subjects(in semester)';
+            } else {
+                document.getElementById('prompt-label').innerText = 'Total semesters';
+            }
+            
+            switchView('view-prompt');
+        }
+
+        /* --- STEP 2: GENERATE ROWS --- */
+        function generateRows() {
+            const count = parseInt(document.getElementById('input-count').value);
+            
+            if (!count || count < 1 || count > 50) {
+                alert("Please enter a valid number (1 - 50).");
+                return;
+            }
+
+            // Set Headers based on mode
+            if (currentMode === '1sem') {
+                document.getElementById('header-left').innerText = 'Subject Credit';
+            } else {
+                document.getElementById('header-left').innerText = 'Semester Credit';
+            }
+
+            const container = document.getElementById('rows-container');
+            container.innerHTML = ''; // Clear old rows
+
+            // Generate exact number of boxes requested
+            for (let i = 0; i < count; i++) {
+                const placeholderLeft = currentMode === '1sem' ? 'Enter subject credit' : 'Enter semester credit';
+                
+                const row = document.createElement('div');
+                row.className = 'input-row';
+                row.innerHTML = `
+                    <input type="number" class="val-credit" placeholder="${placeholderLeft}" step="0.5" min="0">
+                    <input type="number" class="val-result" placeholder="Enter result" step="0.01" min="0" max="4.0">
+                `;
+                container.appendChild(row);
+            }
+
+            // Hide previous results
+            document.getElementById('result-display').style.display = 'none';
+            
+            // Go to inputs view
+            switchView('view-inputs');
+        }
+
+        /* --- STEP 3: CALCULATE MATH --- */
+        function calculateCGPA() {
+            const rows = document.querySelectorAll('#rows-container .input-row');
+            let totalCredits = 0;
+            let totalPoints = 0;
+            let hasValidInput = false;
+
+            rows.forEach(row => {
+                const creditStr = row.querySelector('.val-credit').value;
+                const resultStr = row.querySelector('.val-result').value;
+
+                // Only calculate if BOTH boxes in a row are filled
+                if (creditStr !== "" && resultStr !== "") {
+                    const credit = parseFloat(creditStr);
+                    const result = parseFloat(resultStr);
+                    
+                    totalCredits += credit;
+                    totalPoints += (credit * result);
+                    hasValidInput = true;
+                }
+            });
+
+            if (!hasValidInput || totalCredits === 0) {
+                alert("Please enter valid credits and results to calculate.");
+                return;
+            }
+
+            // Calculate the weighted average
+            const finalCGPA = totalPoints / totalCredits;
+            
+            // Display Result
+            document.getElementById('final-cgpa').innerText = finalCGPA.toFixed(2);
+            document.getElementById('result-display').style.display = 'block';
+
+            // Change button text to match screenshot ("Calculate Again")
+            document.querySelector('.btn-calc').innerText = "Calculate Again";
+        }
+    </script>
+</body>
+</html>
