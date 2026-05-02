@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUFT Cover Page Generator</title>
+    <title>BUFT Tools</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* General Setup */
@@ -23,7 +23,7 @@
 
         /* --- STYLISED FLOATING MENU BUTTON --- */
         .menu-btn {
-            position: fixed; /* FIXED: Keeps button on screen during scroll */
+            position: fixed; 
             top: 20px;
             left: 20px;
             font-size: 22px;
@@ -31,7 +31,7 @@
             background: #ffffff;
             border: 2px solid #002060;
             color: #002060;
-            z-index: 1000; /* Stays above everything */
+            z-index: 1000; 
             padding: 8px 14px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -52,14 +52,14 @@
         .side-menu {
             position: fixed;
             top: 0;
-            left: -320px; /* Hidden by default */
+            left: -320px; 
             width: 320px; 
             height: 100%;
             background-color: #ffffff;
             box-shadow: 2px 0 25px rgba(0,0,0,0.6);
             transition: left 0.3s ease;
             z-index: 999;
-            padding: 80px 20px 20px 20px; /* Space for the button */
+            padding: 80px 20px 20px 20px; 
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
@@ -81,10 +81,29 @@
             font-size: 18px;
         }
         .menu-header-text p {
-            margin: 0;
+            margin: 0 0 10px 0;
             font-size: 13px;
             color: #555;
             line-height: 1.5;
+        }
+        .menu-header-subtext {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px dashed #ccc;
+        }
+        
+        .tools-heading {
+            font-size: 15px;
+            color: #002060;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* Menu Items */
@@ -92,17 +111,31 @@
             display: block;
             padding: 12px;
             margin-bottom: 15px;
-            background-color: #f8f9fa;
+            background-color: #ffffff;
             color: #002060;
             text-decoration: none;
             font-weight: bold;
             border-radius: 6px;
-            border: 1px solid #e0e0e0;
-            transition: 0.2s;
+            border: 1px solid #d1d9e6;
+            transition: all 0.3s ease;
             text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.04);
         }
         .menu-item:hover {
-            background-color: #e2e8f0;
+            background-color: #f0f4f8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Active (Selected) Menu Item */
+        .active-menu-item {
+            background-color: #002060 !important;
+            color: white !important;
+            border-color: #002060 !important;
+            box-shadow: 0 4px 10px rgba(0,32,96,0.3);
+        }
+        .active-menu-item:hover {
+            background-color: #001540 !important;
         }
 
         /* Highlighted Bus Ad in Menu */
@@ -191,19 +224,28 @@
         .app-header {
             text-align: center;
             margin-bottom: 25px;
-            padding-bottom: 15px;
+            padding-bottom: 20px;
             border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .app-header img {
-            width: 260px; 
+            width: 220px; 
             max-width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .app-header h1 {
+            margin: 0 0 5px 0;
+            font-size: 26px;
+            color: #002060;
+            letter-spacing: 0.5px;
         }
         .app-header h2 {
             margin: 0;
             font-size: 18px;
-            color: #002060;
-            line-height: 1.4;
+            color: #333;
+            font-weight: 600;
         }
 
         .form-group { margin-bottom: 12px; }
@@ -289,7 +331,7 @@
         }
 
         /* Header Section */
-        .header-title {
+        .pdf-header-title {
             text-align: center;
             font-size: 27px; 
             letter-spacing: 0.5px; 
@@ -344,14 +386,15 @@
         .submission-section {
             display: flex;
             justify-content: space-between;
+            gap: 15px;
             margin-bottom: auto; 
         }
 
         .submit-box {
             border: 2px solid #002060;
             border-radius: 15px; 
-            width: 49%; 
-            padding: 20px 15px; 
+            flex: 1; 
+            padding: 15px 15px;
             box-sizing: border-box;
         }
         
@@ -359,17 +402,19 @@
             font-weight: bold;
             font-size: 24px; 
             color: #002060;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         
         .submit-box-content {
-            font-size: 19px; 
-            line-height: 1.8; 
+            font-size: 17px; 
+            line-height: 1.6; 
             color: black;
         }
         .submit-box-content .name-bold {
-            font-size: 22px; 
+            font-size: 21px; 
             font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
         }
 
         /* Index Table Styles */
@@ -471,7 +516,7 @@
                 align-items: center;    
                 gap: 20px;
                 padding: 15px;
-                padding-top: 70px; /* Added padding to clear space for the new floating menu button */
+                padding-top: 70px; 
             }
 
             .form-container {
@@ -504,27 +549,40 @@
 
     <button class="menu-btn" onclick="toggleMenu()" title="Open Menu">☰</button>
 
+    <!-- SIDE DRAWER MENU -->
     <div class="side-menu" id="sideMenu">
         
         <div class="menu-header-text">
-            <h3>BUFT Tools</h3>
-            <p>Instantly generate standard cover pages and index pages for your lab reports and assignments. Save time and format perfectly.</p>
+            <h3>🛠️ BUFT Tools</h3>
+            <p>Your all-in-one digital toolkit for BUFT students. Seamlessly generate assignment covers, calculate your CGPA, and track university buses in real-time.</p>
+            <p class="menu-header-subtext">💡 More tools are coming soon! You may suggest tool ideas in the feedback section.</p>
         </div>
-        <hr style="margin-bottom: 20px; border-top: 1px solid #eee;">
+        <hr style="margin-bottom: 20px; border-top: 1px solid #eee; width: 100%;">
 
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSf0aEZJ038DlgvbKvUVDPEGR95RRPSoZfAiMgXiGYpUWFARlA/viewform?usp=publish-editor" target="_blank" class="menu-item">
-            📝 Submit Feedback
+        <div class="tools-heading">🛠️Tools:</div>
+
+        <!-- Active Page: Cover Page Generator -->
+        <a href="/" class="menu-item active-menu-item">
+            📄 Cover Page Generator
         </a>
 
-        <!-- NEW: CGPA Calculator Link -->
-        <a href="/cgpa-calculator" class="menu-item" style="background-color: #e6f0ff; border-color: #b3d1ff;">
+        <!-- CGPA Calculator Link -->
+        <a href="/cgpa-calculator" class="menu-item">
             📊 CGPA Calculator
         </a>
 
+        <!-- Highly Styled Bus Tracker Ad -->
         <a href="https://naabilll.github.io/buft-bus-tracker" target="_blank" class="menu-item bus-ad">
             <span class="ad-badge">Recommended Utilities</span>
             <span class="ad-title">🚌 BUFT Bus Tracker</span>
             <span class="ad-subtitle">Track university buses in real-time!</span>
+        </a>
+
+        <hr style="margin-bottom: 20px; border-top: 1px solid #eee; width: 100%;">
+
+        <!-- Feedback Form Link -->
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSf0aEZJ038DlgvbKvUVDPEGR95RRPSoZfAiMgXiGYpUWFARlA/viewform?usp=publish-editor" target="_blank" class="menu-item">
+            📝 Submit Feedback
         </a>
 
         <div class="counter-box">
@@ -540,9 +598,11 @@
 
     <div class="form-container">
         
+        <!-- HIGHLY PROFESSIONAL HEADER RE-DESIGN -->
         <div class="app-header">
             <img src="https://buft.edu.bd/themes/buft/images/buft_new_logo.png" alt="BUFT Web Logo">
-            <h2>BGMEA University of Fashion & Technology<br>Cover Page Generator</h2>
+            <h1>BUFT Tools</h1>
+            <h2>BUFT Cover Page Generator</h2>
         </div>
 
         <div class="mode-toggle">
@@ -644,17 +704,19 @@
         <button class="download-btn" onclick="generatePDF()">Download Document</button>
     </div>
 
+    <!-- Live Preview -->
     <div class="page-wrapper">
         <div id="cover-page">
             <div class="border-outer">
                 <div class="border-inner">
                     
-                    <div class="header-title">BGMEA University of Fashion & Technology</div>
+                    <div class="pdf-header-title">BGMEA University of Fashion & Technology</div>
                     
                     <div class="logo-container">
                         <img src="logo.png" id="out-logo" alt="BUFT Logo">
                     </div>
 
+                    <!-- DYNAMIC TITLE BOX -->
                     <div class="report-type-outer">
                         <div class="report-type-inner" id="out-main-title">Lab Report</div>
                     </div>
@@ -675,7 +737,7 @@
                             <div class="submit-box">
                                 <div class="submit-box-title">Submitted To:</div>
                                 <div class="submit-box-content">
-                                    <span class="name-bold" id="out-teacher-name"></span><br>
+                                    <span class="name-bold" id="out-teacher-name"></span>
                                     <span id="out-teacher-desig"></span><br>
                                     Dept. of <span id="out-teacher-dept"></span><br>
                                     BUFT
@@ -685,10 +747,10 @@
                             <div class="submit-box">
                                 <div class="submit-box-title">Submitted By:</div>
                                 <div class="submit-box-content">
-                                    <span class="name-bold" id="out-student-name"></span><br>
+                                    <span class="name-bold" id="out-student-name"></span>
                                     <strong>ID:</strong> <span id="out-student-id"></span><br>
                                     <strong>Section:</strong> <span id="out-student-section"></span><br>
-                                    <strong>Department:</strong> <span id="out-student-dept"></span>
+                                    <strong>Dept:</strong> <span id="out-student-dept"></span>
                                 </div>
                             </div>
                         </div>
