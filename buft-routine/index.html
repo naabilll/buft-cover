@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUFT Class Routine Maker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --th-blue:   #9DBBDE;
+      --th-green:  #A6D075;
+      --td-yellow: #FCE49C;
+      --border:    #000000;
+      --bg:        #eef2f8;
+      --text:      #000000;
+      --navy:      #002060;
+    }
+
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--navy); color: white; padding: 1.2rem 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+    .header-container {
+      max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    .header-titles { text-align: center; flex: 1; min-width: 250px; }
+    .header-titles h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.3rem; }
+    .header-titles p { font-size: 0.95rem; opacity: 0.85; font-weight: 300; margin: 0; }
+    .back-link {
+      color: white; text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      background: rgba(255,255,255,0.15); padding: 0.6rem 1rem; border-radius: 8px; transition: 0.2s;
+      white-space: nowrap;
+    }
+    .back-link:hover { background: rgba(255,255,255,0.25); }
+    .header-spacer { width: 170px; } /* Balances the flex layout so title stays perfectly centered */
+
+    @media (max-width: 768px) {
+      .header-spacer { display: none; }
+      .header-container { justify-content: center; }
+      .back-link { order: -1; margin-bottom: 0.5rem; }
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── UPLOAD SECTION ── */
+    #upload-section { max-width: 700px; margin: 1rem auto 2rem; }
+
+    .source-label {
+      text-align: center; font-weight: 600; color: var(--navy);
+      margin-bottom: 0.8rem; font-size: 1.1rem;
+    }
+
+    /* Mode tabs */
+    .mode-tabs {
+      display: flex; border-radius: 10px; overflow: hidden;
+      border: 2px solid var(--navy); margin-bottom: 1.2rem;
+      position: relative; z-index: 10; background: white;
+    }
+    .mode-tab {
+      flex: 1; padding: .8rem 1rem; text-align: center; cursor: pointer;
+      font-weight: 600; font-size: .95rem; transition: background 0.2s, color 0.2s, transform 0.1s;
+      background: transparent; color: var(--navy); border: none; font-family: 'Outfit', sans-serif;
+      user-select: none; -webkit-user-select: none; /* Prevents text highlighting */
+    }
+    .mode-tab:hover:not(.active) { background: #eef2f8; }
+    .mode-tab:active { transform: scale(0.98); }
+    .mode-tab.active { background: var(--navy); color: white; }
+    .mode-tab:not(:last-child) { border-right: 2px solid var(--navy); }
+
+    /* Upload panels */
+    .upload-panel { display: none; }
+    .upload-panel.active { display: block; }
+
+    /* PDF card */
+    .upload-card {
+      background: white; border-radius: 16px; padding: 2.5rem 2rem;
+      text-align: center; border: 2px dashed #9DBBDE;
+      cursor: pointer; transition: 0.2s; box-shadow: 0 8px 24px rgba(0,0,0,.05);
+      position: relative;
+    }
+    .upload-card:hover { border-color: var(--navy); background: #f8faff; transform: translateY(-2px); }
+    .upload-card input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .upload-card h2 { font-size: 1.2rem; margin-bottom: .4rem; color: var(--navy); }
+    .upload-card p { font-size: .88rem; color: #666; }
+
+    /* Image upload area */
+    .img-upload-area {
+      background: white; border-radius: 16px; padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,.05);
+    }
+    .img-drop-zone {
+      border: 2px dashed #A6D075; border-radius: 12px; padding: 2rem 1rem;
+      text-align: center; cursor: pointer; transition: .2s; position: relative;
+      background: #fafff5;
+    }
+    .img-drop-zone:hover, .img-drop-zone.drag-over { border-color: #4a8a2a; background: #f0ffe5; }
+    .img-drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .img-drop-zone h2 { font-size: 1.1rem; color: #2a6a10; margin: .5rem 0 .3rem; }
+    .img-drop-zone p  { font-size: .83rem; color: #557a40; }
+
+    /* Screenshot previews */
+    #img-preview-list {
+      display: flex; flex-wrap: wrap; gap: .7rem;
+      margin-top: 1rem;
+    }
+    .img-preview-item {
+      position: relative; border-radius: 8px; overflow: hidden;
+      border: 2px solid #A6D075; width: 130px; flex-shrink: 0;
+    }
+    .img-preview-item img { width: 100%; display: block; height: 90px; object-fit: cover; }
+    .img-preview-item .img-label {
+      background: #2a6a10; color: white; font-size: .68rem;
+      padding: 2px 6px; text-align: center; font-weight: 600;
+    }
+    .img-preview-item .img-remove {
+      position: absolute; top: 2px; right: 2px;
+      background: rgba(180,20,20,.85); color: white;
+      border: none; border-radius: 50%; width: 20px; height: 20px;
+      font-size: .75rem; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; line-height: 1;
+    }
+
+    /* Process button */
+    .btn-process {
+      display: block; width: 100%; margin-top: 1rem;
+      padding: .85rem; background: #2e7d32; color: white;
+      border: none; border-radius: 10px; font-size: 1rem;
+      font-weight: 700; font-family: 'Outfit', sans-serif;
+      cursor: pointer; transition: .2s;
+    }
+    .btn-process:hover { background: #1b5e20; transform: translateY(-1px); }
+    .btn-process:disabled { background: #aaa; cursor: not-allowed; transform: none; }
+
+    /* OCR progress bar */
+    #ocr-progress-wrap { display: none; margin-top: 1rem; }
+    #ocr-progress-label { font-size: .85rem; color: #444; margin-bottom: .4rem; }
+    .progress-bar-bg {
+      width: 100%; height: 10px; background: #dde; border-radius: 10px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; background: linear-gradient(90deg, #2e7d32, #66bb6a);
+      border-radius: 10px; transition: width .25s;
+      width: 0%;
+    }
+
+    /* Status */
+    #status { margin-top: 1rem; text-align: center; font-size: .9rem; color: #444; min-height: 1.4rem; }
+    #status.error { color: #d32f2f; font-weight: 600; }
+
+    /* Tip box */
+    .tip-box {
+      background: #fffde7; border: 1px solid #ffe082; border-radius: 10px;
+      padding: .8rem 1rem; margin-top: 1rem; font-size: .82rem; color: #5d4037;
+      line-height: 1.6;
+    }
+    .tip-box strong { display: block; margin-bottom: .3rem; font-size: .85rem; }
+
+    /* ── RESULT SECTION ── */
+    #result-section { display: none; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 6px; cursor: pointer; font-family: 'Outfit', sans-serif; font-size: .9rem; font-weight: 600; padding: .6rem 1.2rem; transition: .2s; }
+    .btn-primary { background: var(--navy); color: white; }
+    .btn-primary:hover { background: #003880; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-success:hover { background: #1b5e20; }
+    .btn-ghost { background: white; border: 1px solid #ccc; }
+
+    /* ── TABLE ── */
+    .table-wrap { width: 100%; overflow-x: auto; background: white; border: 2px solid white; }
+    #tbl { width: 100%; border-collapse: collapse; font-size: .85rem; min-width: 850px; }
+    #tbl th, #tbl td { border: 1px solid var(--border); }
+    #tbl th { background: var(--th-blue); color: var(--text); padding: .6rem .4rem; text-align: left; font-weight: 700; font-size: .9rem; }
+    #tbl th.th-day { background: var(--th-green); width: 65px; }
+    #tbl td { height: 90px; vertical-align: top; padding: 0; background: #ffffff; }
+    #tbl td.td-day { background: var(--td-yellow); font-weight: 700; font-size: .95rem; padding: .6rem; vertical-align: top; text-align: left; }
+    .cls { width: 100%; height: 100%; padding: .6rem; display: flex; flex-direction: column; justify-content: flex-start; }
+    .title-room { font-weight: 700; font-size: .88rem; line-height: 1.4; }
+
+    @media print {
+      body { background: white; }
+      header, #upload-section, .toolbar, #status { display: none !important; }
+      .container { padding: 0; max-width: 100%; margin: 0; }
+      #result-section { display: block !important; }
+      #tbl th { background: var(--th-blue) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      #tbl th.th-day { background: var(--th-green) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      #tbl td.td-day { background: var(--td-yellow) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      @page { size: A4 landscape; margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-container">
+    <a href="https://buftex.netlify.app" class="back-link">← Return to Homepage</a>
+    <div class="header-titles">
+      <h1>BUFT Class Routine Maker</h1>
+      <p>Make class routine from UCAM routine PDF or, screenshots.</p>
+    </div>
+    <div class="header-spacer"></div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div id="upload-section">
+    
+    <div class="source-label">Select source from which u want to make routine:</div>
+
+    <div class="mode-tabs">
+      <button type="button" class="mode-tab active" onclick="switchMode('pdf')" id="tab-pdf">📄 PDF Routine</button>
+      <button type="button" class="mode-tab" onclick="switchMode('img')" id="tab-img">🖼️ Screenshots</button>
+    </div>
+
+    <div class="upload-panel active" id="panel-pdf">
+      <div class="upload-card" id="drop-zone-pdf">
+        <input type="file" id="pdf-input" accept=".pdf" />
+        <div class="upload-icon">📄</div>
+        <h2>Upload PDF Routine</h2>
+        <p>Drop your downloaded UCAM routine here</p>
+      </div>
+    </div>
+
+    <div class="upload-panel" id="panel-img">
+      <div class="img-upload-area">
+        <div class="img-drop-zone" id="drop-zone-img">
+          <input type="file" id="img-input" accept="image/*" multiple />
+          <div class="upload-icon">📸</div>
+          <h2>Upload Screenshots (1–3 images)</h2>
+          <p>Take screenshots of the UCAM routine table and upload them here.<br/>Add multiple images if your screen cut off some columns.</p>
+        </div>
+
+        <div id="img-preview-list"></div>
+
+        <div id="ocr-progress-wrap">
+          <div id="ocr-progress-label">Recognizing text…</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="ocr-bar"></div></div>
+        </div>
+
+        <button type="button" class="btn-process" id="btn-ocr" onclick="processImages()" disabled>
+          🔍 Extract &amp; Build Routine
+        </button>
+
+        <div class="tip-box">
+          <strong>💡 Tips for best results:</strong>
+          • Use the UCAM web portal (not a photo of paper).<br/>
+          • Screenshot in landscape / zoom out so more columns are visible.<br/>
+          • If the table is cut off, take a 2nd screenshot scrolled to the right.<br/>
+          • Bright screen + no glare = better OCR accuracy.
+        </div>
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div id="result-section">
+    <div class="toolbar">
+      <button type="button" class="btn btn-ghost" onclick="resetApp()">↩ Upload Another</button>
+      <div class="actions">
+        <button type="button" class="btn btn-success" onclick="downloadJPG()">🖼️ Save as JPG</button>
+        <button type="button" class="btn btn-primary" onclick="downloadPDF()">⬇ Download PDF</button>
+      </div>
+    </div>
+    <div id="print-area">
+      <div class="table-wrap" id="table-wrap">
+        <table id="tbl"></table>
+      </div>
+    </div>
+  </div>
+
+</div><script>
+// ════════════════════════════════════════
+//  SETUP
+// ════════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
+const TIME_SLOTS = [
+  { label: '9:00-10:29',  targetStart: 550 },
+  { label: '10:30-11:59', targetStart: 635 },
+  { label: '12:00-1:30',  targetStart: 720 },
+  { label: '1:31-1:59',   targetStart: 796 },
+  { label: '2:00-3:29',   targetStart: 855 },
+  { label: '3:30-5:00',   targetStart: 940 },
+];
+
+// Holds staged image files for OCR
+let stagedImages = []; // Array of { file, objectURL }
+
+// ════════════════════════════════════════
+//  MODE SWITCHING
+// ════════════════════════════════════════
+function switchMode(mode) {
+  document.getElementById('tab-pdf').classList.toggle('active', mode === 'pdf');
+  document.getElementById('tab-img').classList.toggle('active', mode === 'img');
+  document.getElementById('panel-pdf').classList.toggle('active', mode === 'pdf');
+  document.getElementById('panel-img').classList.toggle('active', mode === 'img');
+  setStatus('');
+}
+
+// ════════════════════════════════════════
+//  IMAGE STAGING
+// ════════════════════════════════════════
+document.getElementById('img-input').addEventListener('change', function(e) {
+  addImages(Array.from(e.target.files));
+  // Reset so same file can be re-added if needed
+  this.value = '';
+});
+
+function addImages(files) {
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    if (stagedImages.length >= 3) { setStatus('⚠️ Max 3 images allowed. Remove one first.', true); break; }
+    if (stagedImages.some(s => s.file.name === file.name && s.file.size === file.size)) continue; // skip dup
+    stagedImages.push({ file, objectURL: URL.createObjectURL(file) });
+  }
+  renderPreviews();
+}
+
+function removeImage(index) {
+  URL.revokeObjectURL(stagedImages[index].objectURL);
+  stagedImages.splice(index, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const container = document.getElementById('img-preview-list');
+  if (stagedImages.length === 0) {
+    container.innerHTML = '';
+    document.getElementById('btn-ocr').disabled = true;
+    return;
+  }
+  container.innerHTML = stagedImages.map((s, i) => `
+    <div class="img-preview-item">
+      <img src="${s.objectURL}" alt="Screenshot ${i+1}" />
+      <div class="img-label">Image ${i+1}</div>
+      <button class="img-remove" onclick="removeImage(${i})" title="Remove">✕</button>
+    </div>
+  `).join('');
+  document.getElementById('btn-ocr').disabled = false;
+  setStatus('');
+}
+
+// ── Drag & Drop for images ──
+const imgDrop = document.getElementById('drop-zone-img');
+imgDrop.addEventListener('dragover', e => { e.preventDefault(); imgDrop.classList.add('drag-over'); });
+imgDrop.addEventListener('dragleave', () => imgDrop.classList.remove('drag-over'));
+imgDrop.addEventListener('drop', e => {
+  e.preventDefault(); imgDrop.classList.remove('drag-over');
+  addImages(Array.from(e.dataTransfer.files));
+});
+
+// ════════════════════════════════════════
+//  OCR PROCESSING
+// ════════════════════════════════════════
+async function processImages() {
+  if (stagedImages.length === 0) return;
+
+  const btn = document.getElementById('btn-ocr');
+  btn.disabled = true;
+  document.getElementById('ocr-progress-wrap').style.display = 'block';
+  setStatus('');
+
+  try {
+    let combinedText = '';
+    const totalImages = stagedImages.length;
+
+    for (let i = 0; i < totalImages; i++) {
+      const { file } = stagedImages[i];
+      updateOCRProgress(i, totalImages, `Recognizing image ${i+1} of ${totalImages}…`);
+
+      const worker = await Tesseract.createWorker('eng', 1, {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            const base    = i / totalImages;
+            const portion = (1 / totalImages) * m.progress;
+            updateOCRBar((base + portion) * 100);
+          }
+        }
+      });
+
+      // Set PSM 6: assume uniform block of text — good for tables
+      await worker.setParameters({ tessedit_pageseg_mode: '6' });
+
+      const { data: { text } } = await worker.recognize(file);
+      await worker.terminate();
+
+      combinedText += '\n' + text;
+    }
+
+    updateOCRBar(100);
+    updateOCRProgress(totalImages, totalImages, '✅ OCR complete! Parsing schedule…');
+
+    // Small delay so UI can paint
+    await new Promise(r => setTimeout(r, 200));
+
+    const entries = parseRoutine({ fullText: combinedText, spatialItems: [] });
+
+    if (entries.length === 0) {
+      setStatus('⚠️ No class entries found. Try clearer screenshots or use the PDF option.', true);
+      document.getElementById('ocr-progress-wrap').style.display = 'none';
+      btn.disabled = false;
+      return;
+    }
+
+    document.getElementById('ocr-progress-wrap').style.display = 'none';
+    setStatus('');
+    render(entries);
+
+  } catch (err) {
+    console.error(err);
+    setStatus('❌ OCR failed: ' + err.message, true);
+    document.getElementById('ocr-progress-wrap').style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+function updateOCRBar(pct) {
+  document.getElementById('ocr-bar').style.width = pct + '%';
+}
+function updateOCRProgress(done, total, msg) {
+  document.getElementById('ocr-progress-label').textContent = msg;
+  updateOCRBar((done / total) * 100);
+}
+
+// ════════════════════════════════════════
+//  PDF PROCESSING
+// ════════════════════════════════════════
+async function extractTextData(file) {
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  let fullText = '';
+  const spatialItems = [];
+
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const tc   = await page.getTextContent();
+
+    for (const item of tc.items) {
+      if (item.str.trim() !== '') {
+        spatialItems.push({ str: item.str.trim(), x: item.transform[4], y: item.transform[5], page: p });
+      }
+    }
+
+    const items = [...tc.items].sort((a, b) => {
+      const dy = b.transform[5] - a.transform[5];
+      if (Math.abs(dy) > 5) return dy;
+      return a.transform[4] - b.transform[4];
+    });
+    items.forEach(item => fullText += item.str + ' ');
+    fullText += '\n';
+  }
+  return { fullText: fullText.replace(/\s+/g, ' '), spatialItems };
+}
+
+// ════════════════════════════════════════
+//  SHARED PARSER
+// ════════════════════════════════════════
+function toMinutes(timeStr) {
+  const m = timeStr.trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return -1;
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2]);
+  const ap = m[3].toUpperCase();
+  if (ap === 'PM' && h !== 12) h += 12;
+  if (ap === 'AM' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+function getSlotIndex(startStr) {
+  const mins = toMinutes(startStr);
+  if (mins < 0) return -1;
+  let bestIdx = -1, minDiff = 999;
+  for (let i = 0; i < TIME_SLOTS.length; i++) {
+    const diff = Math.abs(mins - TIME_SLOTS[i].targetStart);
+    if (diff < minDiff && diff <= 45) { minDiff = diff; bestIdx = i; }
+  }
+  return bestIdx;
+}
+
+function parseRoutine(data) {
+  const { fullText, spatialItems } = data;
+
+  const entryRe = /\b(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b\s+([A-Z0-9]{2,6})\s+(\d{1,2}[:.]\d{1,2}\s*[AP]M)(?:(?!\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b).){0,95}?\b([A-Z]{2,4}\d{4}[A-Z]?)\b/gi;
+  const rawEntries = [];
+  let em;
+  while ((em = entryRe.exec(fullText)) !== null) {
+    rawEntries.push({
+      day:       em[1].charAt(0).toUpperCase() + em[1].slice(1).toLowerCase(),
+      room:      em[2],
+      startTime: em[3].replace('.', ':'),
+      code:      em[4].toUpperCase()
+    });
+  }
+
+  const courses = {};
+  if (spatialItems.length > 0) {
+    const courseHeader  = spatialItems.find(i => i.str.includes('Course Title'));
+    const teacherHeader = spatialItems.find(i => i.str === 'Teacher' || i.str.includes('Teacher Phone'));
+    const titleMinX = courseHeader  ? courseHeader.x  - 10 : 80;
+    const titleMaxX = teacherHeader ? teacherHeader.x - 10 : 250;
+
+    const leftCodes = spatialItems.filter(i => /^[A-Z]{2,4}\d{4}[A-Z]?$/.test(i.str) && i.x < titleMinX);
+    leftCodes.sort((a, b) => a.page !== b.page ? a.page - b.page : b.y - a.y);
+
+    for (let i = 0; i < leftCodes.length; i++) {
+      const codeItem = leftCodes[i];
+      const code = codeItem.str;
+      if (courses[code]) continue;
+      const topY = codeItem.y + 8;
+      let bottomY = codeItem.y - 45;
+      for (let j = i + 1; j < leftCodes.length; j++) {
+        if (leftCodes[j].page === codeItem.page && leftCodes[j].y < codeItem.y - 5) {
+          bottomY = leftCodes[j].y + 5; break;
+        }
+      }
+      const titleItems = spatialItems.filter(item =>
+        item.page === codeItem.page &&
+        item.x >= titleMinX && item.x < titleMaxX &&
+        item.y <= topY && item.y > bottomY
+      );
+      titleItems.sort((a, b) => Math.abs(b.y - a.y) > 5 ? b.y - a.y : a.x - b.x);
+      let title = titleItems.map(t => t.str).join(' ').replace(/\s+/g, ' ').trim();
+      title = title.replace(/\s*-\s*/g, '-').replace(/\(Optional\)/gi, '').trim();
+      if (title.length > 2) courses[code] = title;
+    }
+  }
+
+  const uniqueCodes = [...new Set(rawEntries.map(e => e.code))];
+  uniqueCodes.forEach(code => {
+    if (!courses[code]) {
+      const titleRegex = new RegExp(
+        `\\b${code}\\b[\\s:]+([\\w][^\\n]{3,80}?)(?=\\s+(?:[A-Z]{2,4}[_\\s][A-Z]|\\+?880|01\\d{8}|\\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\\b))`,
+        'i'
+      );
+      const match = fullText.match(titleRegex);
+      if (match && match[1]) {
+        courses[code] = match[1].replace(/\(Optional\)/gi, '').replace(/\s+/g, ' ').trim();
+      } else {
+        courses[code] = code;
+      }
+    }
+  });
+
+  const entries = [];
+  rawEntries.forEach(raw => {
+    const slotIndex = getSlotIndex(raw.startTime);
+    const dayIndex  = DAYS.indexOf(raw.day);
+    if (slotIndex >= 0 && dayIndex >= 0) {
+      entries.push({
+        courseCode: raw.code,
+        title:      courses[raw.code] || raw.code,
+        day: raw.day, room: raw.room,
+        slotIndex, dayIndex
+      });
+    }
+  });
+
+  const seen = new Set();
+  return entries.filter(e => {
+    const key = `${e.dayIndex}-${e.slotIndex}-${e.courseCode}`;
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  });
+}
+
+// ════════════════════════════════════════
+//  RENDER TABLE
+// ════════════════════════════════════════
+function render(entries) {
+  const grid = Array.from({ length: DAYS.length }, () =>
+    Array.from({ length: TIME_SLOTS.length }, () => [])
+  );
+  entries.forEach(e => grid[e.dayIndex][e.slotIndex].push(e));
+
+  const tbl = document.getElementById('tbl');
+  let html = '<thead><tr><th class="th-day">Date/Time</th>';
+  TIME_SLOTS.forEach(slot => { html += `<th>${slot.label}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  DAYS.forEach((day, di) => {
+    html += `<tr><td class="td-day">${day}</td>`;
+    TIME_SLOTS.forEach((_, si) => {
+      const cell = grid[di][si];
+      if (cell.length === 0) {
+        html += '<td></td>';
+      } else {
+        html += '<td>';
+        cell.forEach(e => {
+          let displayTitle = e.title
+            .replace(new RegExp(`\\b${e.courseCode}\\b`, 'gi'), '')
+            .replace(/^[-,\s]+|[-,\s]+$/g, '')
+            .trim() || e.courseCode;
+          html += `<div class="cls"><span class="title-room">${displayTitle}<br>(${e.room})</span></div>`;
+        });
+        html += '</td>';
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  tbl.innerHTML = html;
+
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('result-section').style.display = 'block';
+}
+
+// ════════════════════════════════════════
+//  PDF FILE HANDLER
+// ════════════════════════════════════════
+async function handleFile(file) {
+  if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+    setStatus('⚠️ Please select a PDF file.', true); return;
+  }
+  setStatus('⏳ Reading PDF & extracting column data…');
+  try {
+    const data    = await extractTextData(file);
+    const entries = parseRoutine(data);
+    if (entries.length === 0) {
+      setStatus('⚠️ No subjects found. Ensure this is a valid UCAM PDF.', true); return;
+    }
+    setStatus('');
+    render(entries);
+  } catch (err) {
+    console.error(err);
+    setStatus('❌ Error processing file.', true);
+  }
+}
+
+// ════════════════════════════════════════
+//  DOWNLOAD HELPERS
+// ════════════════════════════════════════
+function downloadPDF() {
+  setStatus('⏳ Generating PDF…');
+  const element   = document.getElementById('print-area');
+  const tableWrap = document.getElementById('table-wrap');
+  tableWrap.style.overflow = 'visible';
+  html2pdf().set({
+    margin: .3, filename: 'BUFT_Routine.pdf',
+    image: { type: 'jpeg', quality: 1.0 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+  }).from(element).save().then(() => {
+    tableWrap.style.overflow = 'auto'; setStatus('');
+  }).catch(err => {
+    console.error(err); setStatus('❌ Error generating PDF.', true);
+    tableWrap.style.overflow = 'auto';
+  });
+}
+
+function downloadJPG() {
+  setStatus('⏳ Generating JPG…');
+  const tableWrap = document.getElementById('table-wrap');
+  const orig = tableWrap.style.overflow;
+  tableWrap.style.overflow = 'visible';
+  html2canvas(tableWrap, { scale: 3, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+    tableWrap.style.overflow = orig;
+    const link = document.createElement('a');
+    link.download = 'BUFT_Routine.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 1.0);
+    link.click();
+    setStatus('');
+  }).catch(err => {
+    console.error(err); setStatus('❌ Error generating JPG.', true);
+    tableWrap.style.overflow = orig;
+  });
+}
+
+// ════════════════════════════════════════
+//  UTILITY
+// ════════════════════════════════════════
+function setStatus(msg, isError = false) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = isError ? 'error' : '';
+}
+
+function resetApp() {
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('upload-section').style.display = 'block';
+  stagedImages = [];
+  renderPreviews();
+  document.getElementById('pdf-input').value  = '';
+  document.getElementById('img-input').value  = '';
+  document.getElementById('ocr-progress-wrap').style.display = 'none';
+  setStatus('');
+  switchMode('pdf');
+}
+
+// ════════════════════════════════════════
+//  EVENT LISTENERS
+// ════════════════════════════════════════
+document.getElementById('pdf-input').addEventListener('change', e => handleFile(e.target.files[0]));
+
+const pdfDrop = document.getElementById('drop-zone-pdf');
+pdfDrop.addEventListener('dragover', e => { e.preventDefault(); pdfDrop.style.borderColor = '#002060'; });
+pdfDrop.addEventListener('dragleave', () => pdfDrop.style.borderColor = '#9DBBDE');
+pdfDrop.addEventListener('drop', e => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); });
+</script>
+</body>
+</html>
