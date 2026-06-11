@@ -43,7 +43,7 @@
       white-space: nowrap;
     }
     .back-link:hover { background: rgba(255,255,255,0.25); }
-    .header-spacer { width: 170px; } /* Balances the flex layout so title stays perfectly centered */
+    .header-spacer { width: 170px; }
 
     @media (max-width: 768px) {
       .header-spacer { display: none; }
@@ -71,7 +71,7 @@
       flex: 1; padding: .8rem 1rem; text-align: center; cursor: pointer;
       font-weight: 600; font-size: .95rem; transition: background 0.2s, color 0.2s, transform 0.1s;
       background: transparent; color: var(--navy); border: none; font-family: 'Outfit', sans-serif;
-      user-select: none; -webkit-user-select: none; /* Prevents text highlighting */
+      user-select: none; -webkit-user-select: none;
     }
     .mode-tab:hover:not(.active) { background: #eef2f8; }
     .mode-tab:active { transform: scale(0.98); }
@@ -208,7 +208,7 @@
     <a href="https://buftex.netlify.app" class="back-link">← Return to Homepage</a>
     <div class="header-titles">
       <h1>BUFT Class Routine Maker</h1>
-      <p>Make class routine from UCAM routine PDF or, screenshots.</p>
+      <p>Make class routine from UCAM routine PDF or screenshots.</p>
     </div>
     <div class="header-spacer"></div>
   </div>
@@ -282,7 +282,9 @@
     </div>
   </div>
 
-</div><script>
+</div>
+
+<script>
 // ════════════════════════════════════════
 //  SETUP
 // ════════════════════════════════════════
@@ -299,8 +301,7 @@ const TIME_SLOTS = [
   { label: '3:30-5:00',   targetStart: 940 },
 ];
 
-// Holds staged image files for OCR
-let stagedImages = []; // Array of { file, objectURL }
+let stagedImages = [];
 
 // ════════════════════════════════════════
 //  MODE SWITCHING
@@ -318,7 +319,6 @@ function switchMode(mode) {
 // ════════════════════════════════════════
 document.getElementById('img-input').addEventListener('change', function(e) {
   addImages(Array.from(e.target.files));
-  // Reset so same file can be re-added if needed
   this.value = '';
 });
 
@@ -326,7 +326,7 @@ function addImages(files) {
   for (const file of files) {
     if (!file.type.startsWith('image/')) continue;
     if (stagedImages.length >= 3) { setStatus('⚠️ Max 3 images allowed. Remove one first.', true); break; }
-    if (stagedImages.some(s => s.file.name === file.name && s.file.size === file.size)) continue; // skip dup
+    if (stagedImages.some(s => s.file.name === file.name && s.file.size === file.size)) continue;
     stagedImages.push({ file, objectURL: URL.createObjectURL(file) });
   }
   renderPreviews();
@@ -356,7 +356,6 @@ function renderPreviews() {
   setStatus('');
 }
 
-// ── Drag & Drop for images ──
 const imgDrop = document.getElementById('drop-zone-img');
 imgDrop.addEventListener('dragover', e => { e.preventDefault(); imgDrop.classList.add('drag-over'); });
 imgDrop.addEventListener('dragleave', () => imgDrop.classList.remove('drag-over'));
@@ -394,7 +393,6 @@ async function processImages() {
         }
       });
 
-      // Set PSM 6: assume uniform block of text — good for tables
       await worker.setParameters({ tessedit_pageseg_mode: '6' });
 
       const { data: { text } } = await worker.recognize(file);
@@ -406,7 +404,6 @@ async function processImages() {
     updateOCRBar(100);
     updateOCRProgress(totalImages, totalImages, '✅ OCR complete! Parsing schedule…');
 
-    // Small delay so UI can paint
     await new Promise(r => setTimeout(r, 200));
 
     const entries = parseRoutine({ fullText: combinedText, spatialItems: [] });
@@ -430,9 +427,7 @@ async function processImages() {
   }
 }
 
-function updateOCRBar(pct) {
-  document.getElementById('ocr-bar').style.width = pct + '%';
-}
+function updateOCRBar(pct) { document.getElementById('ocr-bar').style.width = pct + '%'; }
 function updateOCRProgress(done, total, msg) {
   document.getElementById('ocr-progress-label').textContent = msg;
   updateOCRBar((done / total) * 100);
@@ -469,7 +464,7 @@ async function extractTextData(file) {
 }
 
 // ════════════════════════════════════════
-//  SHARED PARSER
+//  SHARED PARSER (CORE FIX APPLIED)
 // ════════════════════════════════════════
 function toMinutes(timeStr) {
   const m = timeStr.trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -496,7 +491,7 @@ function getSlotIndex(startStr) {
 function parseRoutine(data) {
   const { fullText, spatialItems } = data;
 
-  const entryRe = /\b(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b\s+([A-Z0-9]{2,6})\s+(\d{1,2}[:.]\d{1,2}\s*[AP]M)(?:(?!\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b).){0,95}?\b([A-Z]{2,4}\d{4}[A-Z]?)\b/gi;
+  const entryRe = /\b(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b\s+([A-Z0-9]{2,6})\s+(\d{1,2}[:.]\d{1,2}\s*[AP]M)(?:(?!\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b).){0,130}?\b([A-Z]{2,6}[\s\-]*\d{3,10}[A-Z]?)\b/gi;
   const rawEntries = [];
   let em;
   while ((em = entryRe.exec(fullText)) !== null) {
@@ -504,48 +499,105 @@ function parseRoutine(data) {
       day:       em[1].charAt(0).toUpperCase() + em[1].slice(1).toLowerCase(),
       room:      em[2],
       startTime: em[3].replace('.', ':'),
-      code:      em[4].toUpperCase()
+      code:      em[4].toUpperCase().replace(/[\s\-]/g, '') 
     });
   }
 
+  const uniqueCodes = [...new Set(rawEntries.map(e => e.code))];
   const courses = {};
+  
   if (spatialItems.length > 0) {
-    const courseHeader  = spatialItems.find(i => i.str.includes('Course Title'));
-    const teacherHeader = spatialItems.find(i => i.str === 'Teacher' || i.str.includes('Teacher Phone'));
-    const titleMinX = courseHeader  ? courseHeader.x  - 10 : 80;
-    const titleMaxX = teacherHeader ? teacherHeader.x - 10 : 250;
+    const courseHeader  = spatialItems.find(i => i.str.match(/Course Title/i) || i.str === 'Title');
+    const teacherHeader = spatialItems.find(i => i.str.match(/\bTeacher\b/i));
+    
+    const titleMinX = courseHeader ? courseHeader.x - 15 : 60;
+    
+    let titleMaxX = 250; 
+    if (teacherHeader) {
+        titleMaxX = teacherHeader.x - 5; 
+    } else {
+        const dayHeader = spatialItems.find(i => i.str === 'Day');
+        if (dayHeader) titleMaxX = dayHeader.x - 5;
+    }
 
-    const leftCodes = spatialItems.filter(i => /^[A-Z]{2,4}\d{4}[A-Z]?$/.test(i.str) && i.x < titleMinX);
-    leftCodes.sort((a, b) => a.page !== b.page ? a.page - b.page : b.y - a.y);
+    // BLOCK CLUSTERING LOGIC: Build discrete vertical rows to prevent bleeding
+    const leftColItems = spatialItems.filter(i => i.x < titleMinX && /[A-Z0-9]/.test(i.str));
+    leftColItems.sort((a, b) => a.page !== b.page ? a.page - b.page : b.y - a.y);
 
-    for (let i = 0; i < leftCodes.length; i++) {
-      const codeItem = leftCodes[i];
-      const code = codeItem.str;
-      if (courses[code]) continue;
-      const topY = codeItem.y + 8;
-      let bottomY = codeItem.y - 45;
-      for (let j = i + 1; j < leftCodes.length; j++) {
-        if (leftCodes[j].page === codeItem.page && leftCodes[j].y < codeItem.y - 5) {
-          bottomY = leftCodes[j].y + 5; break;
+    const blocks = [];
+    let curr = null;
+    for (let item of leftColItems) {
+        if (item.str.match(/Course/i)) continue;
+        
+        if (!curr) {
+            curr = { page: item.page, topY: item.y, bottomY: item.y, str: item.str };
+            blocks.push(curr);
+        } else {
+            const yDiff = curr.bottomY - item.y;
+            if (item.page === curr.page && yDiff >= -5 && yDiff < 25) {
+                curr.bottomY = item.y;
+                curr.str += item.str;
+            } else {
+                curr = { page: item.page, topY: item.y, bottomY: item.y, str: item.str };
+                blocks.push(curr);
+            }
         }
-      }
-      const titleItems = spatialItems.filter(item =>
-        item.page === codeItem.page &&
-        item.x >= titleMinX && item.x < titleMaxX &&
-        item.y <= topY && item.y > bottomY
-      );
-      titleItems.sort((a, b) => Math.abs(b.y - a.y) > 5 ? b.y - a.y : a.x - b.x);
-      let title = titleItems.map(t => t.str).join(' ').replace(/\s+/g, ' ').trim();
-      title = title.replace(/\s*-\s*/g, '-').replace(/\(Optional\)/gi, '').trim();
-      if (title.length > 2) courses[code] = title;
+    }
+
+    for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        const cleanedStr = block.str.replace(/[\s\-]/g, '');
+        
+        if (!cleanedStr.match(/^[A-Z]{2,6}\d+/i)) continue;
+
+        const fullCode = uniqueCodes.find(c => c === cleanedStr) || uniqueCodes.find(c => c.startsWith(cleanedStr));
+        if (!fullCode || courses[fullCode]) continue;
+
+        let searchTop = block.topY + 12; 
+        let searchBottom = block.bottomY - 35; 
+        
+        const nextBlock = blocks[i + 1];
+        if (nextBlock && nextBlock.page === block.page) {
+            searchBottom = Math.max(searchBottom, nextBlock.topY + 5);
+        }
+
+        const titleItems = spatialItems.filter(item =>
+            item.page === block.page &&
+            item.x >= titleMinX && 
+            item.x < titleMaxX &&
+            item.y <= searchTop && 
+            item.y >= searchBottom
+        );
+
+        titleItems.sort((a, b) => Math.abs(b.y - a.y) > 5 ? b.y - a.y : a.x - b.x);
+        let title = titleItems.map(t => t.str).join(' ').replace(/\s+/g, ' ').trim();
+
+        const stopRegex = /\s+(?:[A-Z]{2,5}[_\s](?:Mr\.?|Dr\.?|Md\.?|Ms\.?|Mrs\.?|Prof\.?|Engr\.?|[A-Z][a-z]|[A-Z]\b)|01\d{8,9}|\+?880\d+|\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\b)/;
+        const stopMatch = title.match(stopRegex);
+        if (stopMatch) {
+            title = title.substring(0, stopMatch.index);
+        }
+
+        const remainder = fullCode.substring(cleanedStr.length);
+        if (remainder) {
+            const remRegex = new RegExp('^\\s*' + remainder.split('').join('\\s*') + '\\b\\s*', 'i');
+            title = title.replace(remRegex, '');
+        }
+
+        title = title.replace(/\s*-\s*/g, '-').replace(/\(Optional\)/gi, '').trim();
+        
+        if (title.length > 2 && !title.match(/^[A-Z]{2,6}\d{3,}$/)) {
+            courses[fullCode] = title;
+        }
     }
   }
 
-  const uniqueCodes = [...new Set(rawEntries.map(e => e.code))];
+  // Regex Fallback strictly walled off from bleeding
   uniqueCodes.forEach(code => {
     if (!courses[code]) {
+      const codePattern = code.split('').join('[\\s\\-]*');
       const titleRegex = new RegExp(
-        `\\b${code}\\b[\\s:]+([\\w][^\\n]{3,80}?)(?=\\s+(?:[A-Z]{2,4}[_\\s][A-Z]|\\+?880|01\\d{8}|\\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\\b))`,
+        `(?:${codePattern})[\\s:]+([a-zA-Z][^\\n]*?)(?=\\s+(?:[A-Z]{2,5}[_\\s](?:Mr\\.?|Dr\\.?|Md\\.?|Ms\\.?|Mrs\\.?|Prof\\.?|Engr\\.?|[A-Z][a-z]|[A-Z]\\b)|\\+?880|01\\d{8}|[\\w\\.-]+@[\\w\\.-]+\\.\\w+|\\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\\b|[A-Z]{2,6}\\d{3,}))`,
         'i'
       );
       const match = fullText.match(titleRegex);
